@@ -47,8 +47,8 @@ class Model(pl.LightningModule):
         loss = self.criterion(logits, y)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
 
-    def on_train_epoch_end(self):
-        super().on_train_epoch_end()
+    def on_train_batch_end(self, outputs, batch, batch_idx):
+        super().on_train_batch_end(outputs, batch, batch_idx)
         aliasing_norm, data_insufficiency = self.model.get_aliasing_metrics()
-        self.log('aliasing_norm', aliasing_norm, on_step=False, on_epoch=True)
-        self.log('data_insufficiency', data_insufficiency, on_step=False)
+        self.log('aliasing_norm', aliasing_norm, on_step=True, on_epoch=False)
+        self.log('data_insufficiency', data_insufficiency, on_step=True, on_epoch=False)
