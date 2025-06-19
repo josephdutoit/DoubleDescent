@@ -8,7 +8,7 @@ class Config:
     num_classes: int = 10
     label_noise: float = 0.2
     optimizer: str = 'adam'
-    max_steps: int = 500000
+    max_steps: int = None
     max_epochs: int = 4000
     lr: float | None = 1e-4
     batch_size: int = 128

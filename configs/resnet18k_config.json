@@ -4,7 +4,6 @@
     "num_classes": 10,
     "label_noise": 0.2,
     "optimizer": "adam",
-    "max_steps": 500000,
     "max_epochs": 4000,
     "lr": 0.0001,
     "batch_size": 128,
