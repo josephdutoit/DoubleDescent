@@ -1,0 +1,14 @@
+{
+    "net_type": "lin_reg",
+    "dataset": "california_housing",
+    "label_noise": 0.0,
+    "loss_fn": "mse",
+    "optimizer": "sgd",
+    "max_epochs": 1000,
+    "max_steps": -1,
+    "lr": 0.001,
+    "batch_size": 128,
+    "log_dir": "./logs_lin_reg",
+    "val_freq": 1000,
+    "feature_dim": 9
+}
