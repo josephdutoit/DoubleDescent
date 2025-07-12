@@ -9,18 +9,19 @@ from config import Config, main
 
 def main(
         cfg: Config, 
-        model_width: int,
+        model_width: int | None = None,
+        num_samples: int | None = None,
         gpu_id: int | None = None,
         num_workers: int = 4
     ):
-
-    # device = f'cuda:{gpu_id}' if gpu_id is not None else 'cuda'
     
     train_loader, test_loader = get_dataloaders(
-        name=cfg.dataset,
+        dataset=cfg.dataset,
         label_noise=cfg.label_noise,
         num_workers=num_workers,
-        batch_size=cfg.batch_size
+        batch_size=cfg.batch_size,
+        num_train=num_samples,
+        root=cfg.data_dir
     )
 
     logger = TensorBoardLogger(
@@ -35,7 +36,9 @@ def main(
         logger=logger,
         accelerator='gpu',
         devices=[gpu_id],
-        enable_progress_bar=True
+        enable_progress_bar=True,
+        log_every_n_steps=cfg.log_freq,
+        check_val_every_n_epoch=cfg.val_freq,
     )
 
     model = Model(cfg, width=model_width)
@@ -47,8 +50,15 @@ if __name__ == '__main__':
     parser.add_argument(
                 '--width', 
                 type=int, 
-                required=True,
+                required=False,
                 help='Width of the ResNet model'
+    )
+
+    parser.add_argument(
+        '--train_samples',
+        type=int,
+        required=False,
+        help='Number of training samples to use'
     )
     
     parser.add_argument(
@@ -76,4 +86,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     cfg = Config.load_from_file("configs/" + args.config + ".json")
 
-    main(cfg, args.width, args.gpu_id, args.num_workers)
+    main(
+        cfg=cfg, 
+        model_width=args.width, 
+        num_samples=args.train_samples, 
+        gpu_id=args.gpu_id, 
+        num_workers=args.num_workers
+    )

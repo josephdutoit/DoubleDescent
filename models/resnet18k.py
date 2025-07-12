@@ -68,18 +68,14 @@ class PreActResNet(nn.Module):
         return out
 
     def get_aliasing_metrics(self):
-        self.M_TM = torch.concat(
+        M_tm = torch.concat(
                 (self.features, torch.ones(self.features.size(0), 1).to(self.features.device)), dim=1
         ).detach()
 
-        theta = torch.concat(
-            (self.linear.weight.T, self.linear.bias.unsqueeze(0)), dim=0
-        ).detach()
-
-        M_TM_inv = torch.linalg.pinv(self.M_TM)
-        aliasing_norm = torch.norm(M_TM_inv, p=2)
+        M_tm_inv = torch.linalg.pinv(M_tm)
+        aliasing_norm = torch.norm(M_tm_inv, p=2)
         
-        B = M_TM_inv @ self.M_TM
+        B = M_tm_inv @ M_tm
         data_insufficiency = torch.norm(B - torch.eye(B.size(0)).to(B.device), p=2)
 
         return aliasing_norm.item(), data_insufficiency.item()

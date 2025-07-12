@@ -3,6 +3,7 @@
     "dataset": "cifar10",
     "num_classes": 10,
     "label_noise": 0.2,
+    "loss_fn": "cross_entropy",
     "optimizer": "adam",
     "max_epochs": 4000,
     "lr": 0.0001,
