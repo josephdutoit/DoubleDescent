@@ -1,42 +1,55 @@
+import warnings
 import torch 
 import torchvision
 from torchvision import transforms
 from torch.utils.data import ConcatDataset, Dataset
 import numpy as np
 
-class LabelNoiseTransform:
-    def __init__(self, label_noise: float):
-        self.label_noise = label_noise
-
-    def __call__(self, label):
-        if np.random.rand() < self.label_noise:
-            new_label = np.random.randint(0, 10)
-            while new_label == label:
-                new_label = np.random.randint(0, 10)
-            label = new_label
-        return label
 
 class NoisedDataset(Dataset):
-    def __init__(self, dataset: str, root: str, train: bool, label_noise: float = 0.0):
+    def __init__(
+        self, 
+        dataset: str, 
+        root: str, 
+        train: bool, 
+        label_noise: float = 0.0,
+    ):
         if dataset == 'cifar10':
             self.dataset = torchvision.datasets.CIFAR10(
                 root=root, train=train, download=True, transform=transforms.ToTensor()
             )
+            num_classes = 10
         elif dataset == 'cifar100':
             self.dataset = torchvision.datasets.CIFAR100(
                 root=root, train=train, download=True, transform=transforms.ToTensor()
             )
+            num_classes = 100
         else:
             raise ValueError(f"Dataset {dataset} is not supported.")
 
-        self.label_transform = LabelNoiseTransform(label_noise)
+        if train and label_noise > 0:
+            original_targets = np.array(self.dataset.targets)
+            
+            flip_mask = np.random.rand(len(self.dataset)) < label_noise
+            
+            noisy_targets = original_targets.copy()
+            
+            flip_indices = np.where(flip_mask)[0]
+            for idx in flip_indices:
+                original_label = original_targets[idx]
+                new_label = np.random.randint(0, num_classes)
+                while new_label == original_label:
+                    new_label = np.random.randint(0, num_classes)
+                noisy_targets[idx] = new_label
+            
+            self.dataset.targets = noisy_targets.tolist()
+            
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx: int):
         image, label = self.dataset[idx]
-        label = self.label_transform(label)
         return image, label
 
 def get_datasets(
@@ -50,12 +63,13 @@ def get_datasets(
     if name not in ['cifar10', 'cifar100']:
         raise ValueError(f"Dataset {name} is not supported.")
     
-    trainset = NoisedDataset(
-        dataset=name, root=root, train=True, label_noise=label_noise
-    )
     testset = NoisedDataset(
         dataset=name, root=root, train=False, label_noise=label_noise
     )
+    trainset = NoisedDataset(
+        dataset=name, root=root, train=True, label_noise=label_noise
+    )
+    
 
     return trainset, testset
 

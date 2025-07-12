@@ -29,13 +29,18 @@ def main(
         default_hp_metric=False
     )
 
+    gpus = [gpu_id] if gpu_id is not None else "auto"
+    max_steps = cfg.max_steps if cfg.max_steps is not None else -1
+    
     trainer = Trainer(
         max_epochs=cfg.max_epochs,
-        max_steps=cfg.max_steps,
+        max_steps=max_steps,
         logger=logger,
         accelerator='gpu',
-        devices=[gpu_id],
-        enable_progress_bar=True
+        devices=gpus,
+        enable_progress_bar=True,
+        check_val_every_n_epoch=1,  # Validate every epoch
+        num_sanity_val_steps=0,     # Disable sanity checks
     )
 
     model = Model(cfg, width=model_width)
